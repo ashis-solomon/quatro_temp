@@ -1,10 +1,21 @@
 from flask import Blueprint, render_template, request, flash, jsonify
 from flask_login import login_required, current_user
-from .models import Note
+from .models import Note, Post
 from . import db
+from . import ma
 import json
 
+
 views = Blueprint('views', __name__)
+
+# -------------------------------------------------------------------------------------------------------------------
+class PostSchema(ma.Schema):
+  class Meta:
+    fields = ('id', 'emailID', 'type', 'lat', 'long')
+
+post_schema = PostSchema()
+posts_schema = PostSchema(many=True)
+# -------------------------------------------------------------------------------------------------------------------
 
 
 @views.route('/', methods=['GET', 'POST'])
@@ -35,3 +46,73 @@ def delete_note():
             db.session.commit()
 
     return jsonify({})
+
+# -------------------------------------------------------------------------------------------------------------------
+
+# add a post
+@views.route('/post', methods=['POST'])
+# @login_required
+def add_post():
+    emailID = request.json['emailID']
+    type = request.json['type']
+    lat = request.json['lat']
+    long = request.json['long']
+    if Post.query.filter_by(emailID=emailID).first() is not None:
+        return f'POST by user {emailID} already exists !!'
+    else:
+        # user_id = request.json['user_id']
+        print(request)
+        new_post = Post(emailID=emailID, type=type, lat=lat, long=long)
+        # db.session.add(new_post)
+        # db.session.commit()
+        # flash('Post added!', category='success')
+        # return jsonify(post_schema.dump(new_post))
+        return "added"
+
+
+# get all posts
+@views.route('/post', methods=['GET'])
+# @login_required
+def get_posts():
+    all_posts = Post.query.all()
+    # all_products = Post.query.first()
+    # result = post_schema.dump(all_products)
+    result = posts_schema.dump(all_posts)
+
+    return jsonify(result)
+    if request.method == 'POST':
+        note = request.form.get('note')
+
+        if len(note) < 1:
+            flash('Note is too short!', category='error')
+        else:
+            new_note = Note(data=note, user_id=current_user.id)
+            db.session.add(new_note)
+            db.session.commit()
+            flash('Note added!', category='success')
+
+    return render_template("home.html", user=current_user)
+
+# get a single post by id
+@views.route('/post/filter/id=<id>', methods=['GET'])
+# @login_required
+def get_single_post_id(id):
+    post = Post.query.get(id)
+    result = post_schema.dump(post)
+    return jsonify(result)
+
+# get a single post filter by email
+@views.route('/post/filter/email=<email>', methods=['GET'])
+# @login_required
+def get_single_post_email(email):
+    post = Post.query.filter_by(emailID=email).first()
+    result = post_schema.dump(post)
+    return jsonify(result)
+
+# get a single post filter by email and id
+@views.route('/post/filter/email=<email>/id=<id>', methods=['GET'])
+# @login_required
+def get_single_post_email_(email,id):
+    post = Post.query.filter_by(emailID=email).filter_by(id=id).first()
+    result = post_schema.dump(post)
+    return jsonify(result)

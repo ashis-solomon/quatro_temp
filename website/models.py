@@ -17,3 +17,13 @@ class User(db.Model, UserMixin):
     first_name = db.Column(db.String(150))
     notes = db.relationship('Note')
     
+
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    emailID = db.Column(db.String(100), unique=True)
+    # emailID = db.Column(db.String(100))
+    type = db.Column(db.String(200))
+    lat = db.Column(db.Float)
+    long = db.Column(db.Float)
+    
+
