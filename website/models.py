@@ -16,7 +16,16 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(150))
     first_name = db.Column(db.String(150))
     notes = db.relationship('Note')
-    
+
+class Organization(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(150), unique=True)
+    password = db.Column(db.String(150))
+    org_name = db.Column(db.String(150))
+    org_volunteers = db.Column(db.Integer)
+    lat = db.Column(db.Float)
+    long = db.Column(db.Float)
+
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)

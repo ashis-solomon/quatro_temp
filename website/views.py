@@ -1,12 +1,21 @@
 from flask import Blueprint, render_template, request, flash, jsonify
 from flask_login import login_required, current_user
-from .models import Note, Post
+from .models import Note, Post, User
 from . import db
 from . import ma
 import json
 
 
 views = Blueprint('views', __name__)
+
+# -------------------------------------------------------------------------------------------------------------------
+class UserSchema(ma.Schema):
+  class Meta:
+    fields = ('id', 'email', 'password', 'first_name', 'notes')
+
+user_schema = UserSchema()
+users_schema = UserSchema(many=True)
+# -------------------------------------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------------------------------------
 class PostSchema(ma.Schema):
@@ -46,6 +55,22 @@ def delete_note():
             db.session.commit()
 
     return jsonify({})
+
+# -------------------------------------------------------------------------------------------------------------------
+# view all users
+@views.route('/user', methods=['GET'])
+# @login_required
+def get_users():
+    all_users = User.query.all()
+    # all_products = Post.query.first()
+    # result = post_schema.dump(all_products)
+    result = users_schema.dump(all_users)
+    return jsonify(result)
+
+
+
+
+# -------------------------------------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------------------------------------
 
@@ -116,3 +141,5 @@ def get_single_post_email_(email,id):
     post = Post.query.filter_by(emailID=email).filter_by(id=id).first()
     result = post_schema.dump(post)
     return jsonify(result)
+
+# -------------------------------------------------------------------------------------------------------------------
