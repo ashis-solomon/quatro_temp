@@ -4,6 +4,7 @@ from .models import Note, Post, User
 from . import db
 from . import ma
 import json
+from datetime import datetime
 
 
 views = Blueprint('views', __name__)
@@ -11,16 +12,27 @@ views = Blueprint('views', __name__)
 # -------------------------------------------------------------------------------------------------------------------
 class UserSchema(ma.Schema):
   class Meta:
-    fields = ('id', 'email', 'password', 'first_name', 'notes')
+    fields = ('id', 'email', 'first_name')
+    # fields = ('id', 'email', 'password', 'first_name', 'notes', 'org_bool', 'org_name', 'org_volunteers', 'org_lat', 'org_long')
 
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
 # -------------------------------------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------------------------------------
+class OrgSchema(ma.Schema):
+  class Meta:
+    fields = ('id', 'email', 'org_name', 'org_types', 'org_volunteers', 'org_lat', 'org_long')
+    # fields = ('id', 'email', 'password', 'notes', 'org_bool', 'org_name', 'org_types', 'org_volunteers', 'org_lat', 'org_long')
+
+org_schema = OrgSchema()
+orgs_schema = OrgSchema(many=True)
+# -------------------------------------------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------------------------------------------
 class PostSchema(ma.Schema):
   class Meta:
-    fields = ('id', 'emailID', 'type', 'lat', 'long')
+    fields = ('id', 'emailID', 'type', 'lat', 'long', 'active', 'time')
 
 post_schema = PostSchema()
 posts_schema = PostSchema(many=True)
@@ -61,16 +73,27 @@ def delete_note():
 @views.route('/user', methods=['GET'])
 # @login_required
 def get_users():
-    all_users = User.query.all()
+    all_users = User.query.filter_by(org_bool=0)
+    # all_users = User.query.all()
     # all_products = Post.query.first()
     # result = post_schema.dump(all_products)
     result = users_schema.dump(all_users)
     return jsonify(result)
 
-
-
+# -------------------------------------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------------------------------------
+# view all organizations
+@views.route('/orgs', methods=['GET'])
+# @login_required
+def get_orgs():
+    all_orgs = User.query.filter_by(org_bool=1)
+    result = orgs_schema.dump(all_orgs)
+    return jsonify(result)
+
+# -------------------------------------------------------------------------------------------------------------------
+
+
 
 # -------------------------------------------------------------------------------------------------------------------
 
@@ -82,16 +105,21 @@ def add_post():
     type = request.json['type']
     lat = request.json['lat']
     long = request.json['long']
+    active = 1
+    now = datetime.now()
+    dt_string = now.strftime("%d/%m/%Y,%H:%M:%S")
+    print(dt_string)
+    time = dt_string
     if Post.query.filter_by(emailID=emailID).first() is not None:
         return f'POST by user {emailID} already exists !!'
     else:
         # user_id = request.json['user_id']
-        print(request)
-        new_post = Post(emailID=emailID, type=type, lat=lat, long=long)
-        # db.session.add(new_post)
-        # db.session.commit()
-        # flash('Post added!', category='success')
-        # return jsonify(post_schema.dump(new_post))
+        # print(request)
+        new_post = Post(emailID=emailID, type=type, lat=lat, long=long, active=active, time=time)
+        db.session.add(new_post)
+        db.session.commit()
+        flash('Post added!', category='success')
+        return jsonify(post_schema.dump(new_post))
         return "added"
 
 

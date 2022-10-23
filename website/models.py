@@ -17,14 +17,12 @@ class User(db.Model, UserMixin):
     first_name = db.Column(db.String(150))
     notes = db.relationship('Note')
 
-class Organization(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(150), unique=True)
-    password = db.Column(db.String(150))
+    org_bool = db.Column(db.Integer)
     org_name = db.Column(db.String(150))
+    org_types = db.Column(db.String(250))
     org_volunteers = db.Column(db.Integer)
-    lat = db.Column(db.Float)
-    long = db.Column(db.Float)
+    org_lat = db.Column(db.Float)
+    org_long = db.Column(db.Float)
 
 
 class Post(db.Model):
@@ -34,5 +32,8 @@ class Post(db.Model):
     type = db.Column(db.String(200))
     lat = db.Column(db.Float)
     long = db.Column(db.Float)
+    active = db.Column(db.Integer)
+    time = db.Column(db.String(50))
+
     
 
